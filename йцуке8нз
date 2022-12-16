@@ -1,0 +1,101 @@
+import cv2 as cv
+import numpy as np
+from urllib.request import urlopen
+import math
+
+def get_image(url):
+    resp = urlopen(url)
+    image = np.asarray(bytearray(resp.read()), dtype="uint8")
+    image = cv.imdecode(image, cv.IMREAD_COLOR)
+    return image
+
+img = get_image(input())
+#img = cv.imread("C:/Users/EEI/Desktop/clock4.jpg")
+#cv.imshow("ehgie",img)
+
+
+hsv = cv.cvtColor(img, cv.COLOR_BGR2HSV)  # меняем цветовую модель с BGR на HSV
+red = cv.inRange(img, (0, 0 ,230), (10, 10, 255))
+black = cv.inRange(img, (0, 0, 0), (1, 1, 1))
+#cv.imshow("ehgieqw",black)
+
+_, contours, hierarchy = cv.findContours(red.copy(), cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+#print(contours)
+_, contours2, hierarchy = cv.findContours(black.copy(), cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+
+cnt = max(contours[1:], key=cv.contourArea)
+contours2 = sorted(contours2, key=cv.contourArea)
+#cnt2 = contours2[-3]
+
+for cnt2 in contours2:
+    _, (h, w),   _  = cv.minAreaRect(cnt2)
+
+    if w != 0 and h!= 0 and (h/w >= 3 or w/h >= 3) and cv.contourArea(cnt2)>1000:
+        break
+
+
+rect = cv.minAreaRect(cnt)
+rect2 = cv.minAreaRect(cnt2)
+
+alfach = rect[-1] + 270
+
+(x, y), (h,w), alfamin = rect2
+
+if x < 302 and x > 298 and y < 296:
+    alfamin -= 90
+elif x < 302 and x > 298 and y > 304:
+    alfamin += 90
+elif y < 302 and y > 298 and x < 296:
+    alfamin += 180
+elif y < 302 and y > 298 and x > 304:
+    alfamin += 0
+elif x<(300 - 4) and y<(300 - 4):
+    alfamin += 270
+elif x<(300 - 4) and y>(300 + 4):
+    alfamin += 180
+elif x > (300 + 4) and y > (300 + 4):
+    alfamin += 90
+else:
+    alfamin -= 90
+
+(x, y), (h,w), alfach = rect
+
+if x < 302 and x > 298 and y < 296:
+    alfach -= 90
+elif x < 302 and x > 298 and y > 304:
+    alfach += 90
+elif y < 302 and y > 298 and x < 296:
+    alfach += 180
+elif y < 302 and y > 298 and x > 304:
+    alfach += 0
+elif x<(300- 4) and y<(300 - 4):
+    alfach += 270
+elif x<(300 - 4) and y>(300 + 4):
+    alfach += 180
+elif x > (300 + 4) and y > (300 + 4):
+    alfach += 90
+else:
+    alfach -= 90
+
+
+alfach = round(alfach*(1/30))
+alfamin = round(alfamin*(1/6))
+alfach1 = str(alfach)
+alfamin1 = str(alfamin)
+if alfach<10:
+    alfach1 = "0"+alfach1
+if alfamin<10:
+    alfamin1 = "0"+alfamin1
+print(f"{alfach1}:{alfamin1}")
+#print("Час", alfach1)
+#print("МИнута",alfamin1)
+'''
+box = cv.boxPoints(rect)
+box2 = cv.boxPoints(rect2)
+box = np.int0(box)
+box2 = np.int0(box2)
+cv.drawContours(img,[box],0,(0,150,255),2)
+cv.drawContours(img,[box2],0,(0,0,255),2)
+cv.imshow("ehgdsgidsge",img)
+cv.waitKey(0)
+'''
